@@ -16,14 +16,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
-BINARY_DIR ?= /usr/local/bin
+PREFIX?=/usr/local
+INSTALL?=install
+INSTALL_PROGRAM?=$(INSTALL) -s
 
 all: amidithru
 
 CXXFLAGS ?= -O3
-LDFLAGS ?= -lasound
-
-CXX=g++-4.9
+LDFLAGS += -lasound
 
 amidithru: amidithru.o
 	$(CXX) $^ -o $@ $(LDFLAGS)
@@ -32,19 +32,9 @@ amidithru: amidithru.o
 %.o: %.cpp
 	$(CXX) -c $(CXXFLAGS) $^ -o $@
 
-install: all
-	@cp -p amidithru $(BINARY_DIR)/
+install: amidithru
+	mkdir -p $(DESTDIR)$(PREFIX)/bin
+	$(INSTALL_PROGRAM) amidithru $(DESTDIR)$(PREFIX)/bin/
 
 clean:
 	rm -f amidithru *.o
-	rm -f amidithru.deb
-	rm -f debian/usr/bin/amidithru
-	gunzip `find . | grep gz` > /dev/null 2>&1 || true
-
-amidithru.deb: amidithru
-	@gzip --best -n ./debian/usr/share/doc/amidithru/changelog ./debian/usr/share/doc/amidithru/changelog.Debian ./debian/usr/share/man/man1/amidithru.1
-	@mkdir -p debian/usr/bin
-	@cp -p amidithru debian/usr/bin/
-	@fakeroot dpkg --build debian
-	@mv debian.deb amidithru.deb
-	@gunzip `find . | grep gz` > /dev/null 2>&1
